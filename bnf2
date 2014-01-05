@@ -7,8 +7,8 @@ b. Underline character '_';
 c. Decimal digits (0-9);
  1.2 Lexic:
 a.Special symbols, representing:
- - operators “+” “-” “*” “/” “=” “<” “<=” “=” “>=” “>”
- - separators “[“ “]” “{“ “}”“:” “;” space
+ - operators "+" "-" "*" "/" "=" "<" "<=" "=" ">=" ">"
+ - separators "[" "]" "{" "}"":" ";" space
  - reserved words:
 char if else int of main println readln while 
 b.identifiers
@@ -30,18 +30,18 @@ c.constants
 a) Syntactical rules:
 <Type>::= bool | char | int | real | string
 <Statement> ::= <if> |<while> | <println> | <association> | <arraydecl> | <readln> | <simpledecl> | <simplearraydecl> |{<Statement>}
- <if> ::= “if” +”(“ <Expression> ”)” <Statement>“else” ”:” <Statement> 
- <while> ::= “while” “(“ <Expression> “)” <Statement>
- <println> ::=“println” “(“<Expression> “)” “;”
- <association> ::=<Identifier> “=” <Expression> “;”
- <arraydecl> ::=<Identifier> “[“ <s_int> ”]” “=” <Expression> “;”
- <readln> ::=<Identifier> “=” “readln” “(“ <Expression> “) ”;”
- <simpledecl> ::=<Type> <Identifier> “;”
- <simplearraydecl> ::= <Type> <Identifier> ”[“ <d_int> “]” “;”
+ <if> ::= "if" +"(" <Expression> ")" <Statement>"else" ":" <Statement> 
+ <while> ::= "while" "(" <Expression> ")" <Statement>
+ <println> ::="println" "("<Expression> ")" ";"
+ <association> ::=<Identifier> "=" <Expression> ";"
+ <arraydecl> ::=<Identifier> "[" <s_int> "]" "=" <Expression> ";"
+ <readln> ::=<Identifier> "=" "readln" "(" <Expression> ") ";"
+ <simpledecl> ::=<Type> <Identifier> ";"
+ <simplearraydecl> ::= <Type> <Identifier> "[" <d_int> "]" ";"
  <Expression> ::= <Expression> "+" <term> | <term>
  <term> ::= <term> "*" <factor> | <factor>
  <factor> ::= "(" <Expression> ")" | <Identifier>
- <length> ::= <Expression> ”.” “length”
+ <length> ::= <Expression> "." "length"
  
 <Relation> ::= < | <=| == | != | >= | >
 <Operation> ::= + | - | * | / | %
