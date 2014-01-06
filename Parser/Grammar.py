@@ -5,6 +5,8 @@ Created on Thu Jan  2 20:29:48 2014
 @author: dan
 """
 
+from collections import deque
+
 class Grammar:
     ''' Grammar: holds nonterminals, terminals, productions, and start symbol
     '''
@@ -16,6 +18,8 @@ class Grammar:
         
         # Terminals: all allowed terminals
         self.terms = set()
+        
+        self.start = None
     
     def add_nonterminal(self, nonterm):
         assert(nonterm not in self.prods and nonterm not in self.terms)
@@ -31,7 +35,9 @@ class Grammar:
         self.start = nonterm
         
     def add_production(self, nonterm, sequence):
-        assert( isinstance(sequence, list) or isinstance(sequence, tuple) )
+        assert( isinstance(sequence, tuple) or
+                isinstance(sequence, str))
+                
         assert( len(sequence) >= 1 )
         assert( nonterm != sequence[0] ) # Make sure the grammar is safe
         
@@ -39,35 +45,104 @@ class Grammar:
             assert((term in self.terms and term not in self.prods) or
                    (term in self.prods and term not in self.terms))
         self.prods[nonterm].add(sequence)
+   
     
-    def _check_input_partial(self, input_sequence, start_nonterm):
-        '''     Check the input against the grammar, starting with the starting
-            symbol nonterminal, 
-            
-            BUT don't care if symbols remain at the end!
-            
-                Returns the parsed structure if the input is valid
-            or None otherwise
-        '''        
+    def _check_input_aux(self, nonterm):
         
-        # Iterate through productions of start_nonterm
-            # And recursively perform _check_input_partial
-        # TODO: make sure production check is made from longest to shortest
-        # TODO: return remaining sequence and structure so far
-    
-    
+        if (len(self._input_stack) > 0):
+            # Backup the global data before we break them            
+            input_backup = deque(self._input_stack)
+            prods_backup = deque(self._prods_so_far)
+            
+            for prod in sorted(self.prods[nonterm], key=lambda x: -len(x)):
+                # Try a prod!
+                print 'Trying', prod
+                self._prods_so_far.append(str(nonterm)+'->'+str(prod))
+            
+                for x in prod:
+                    # Check every token (x) of the prod
+                    print 'check',x
+                    if x in self.prods:
+                        if not self._check_input_aux(x): 
+                        # This had side effects!!!
+                        # We undo them.
+                            self._input_stack = input_backup
+                            self._prods_so_far = prods_backup
+                            break
+                    
+                    elif x in self.terms:
+                        if len(self._input_stack) > 0 and x == '':
+                            pass
+                        elif len(self._input_stack) > 0 and x == self._input_stack[0]:
+                            self._input_stack.popleft()
+                        else:
+                            self._input_stack = input_backup
+                            self._prods_so_far = prods_backup
+                            break
+                    else:
+                        # Error
+                        self._input_stack = input_backup
+                        self._prods_so_far = prods_backup
+                        break
+            return False
+        else:
+            # We got to length 0, and no return False. We finished!
+            return True
+            
+        
     def check_input(self, input_sequence):
+    # TODO: read grammar from file (via the add_/set_ functions!)
+    
         '''     Check the input against the grammar, starting with the starting
             symbol nonterminal.
                 Makes sure all symbols are parsed, so that the whole input
             corresponds to the grammar.
-                Returns the parsed structure if the input is valid
-            or None otherwise
+                Returns:
+            if the input is valid:
+                - the list of used productions (in order)
+                - the rest of the input sequence
+                if the input is not valid:
+                    Raises exception
         '''
+        # Make sure there exists a start element
+        assert(self.start)
         
-        remaining_toks, tree = \
-            self._check_input_partial(input_sequence, self.start)
+        # Initialize the state
+        state = 'q'         # q - normal
+                            # b - going back
+                            # t - terminated (success)
+                            # e - error (failure)
         
-        return tree if len(remaining_toks) == 0 else None
+        i = 0                       # The position in the input
+        self._prods_so_far = deque([])                      # working stack, starts empty
+        self._input_stack = deque(input_sequence) # input stack, starts with input    
+        
+        return self._check_input_aux(self.start)
+        
     
-    # TODO: read grammar from file (via the add_/set_ functions!)
+    
+if __name__ == '__main__':
+    g = Grammar()
+    
+    '''
+    Gramatica exemplu din curs:
+    ({S}, {a,b,c}, {S->aSbS|aS|c}, S)
+    
+    Gramatica pe care am folosit-o aici:
+    http://jflap.org/tutorial/grammar/LL/index.html
+    
+    '''
+    g.add_terminal('a')
+    g.add_terminal('b')
+    g.add_terminal('')
+    g.add_nonterminal('A')
+    g.add_nonterminal('B')
+    g.add_nonterminal('S')
+    g.add_production('S', 'A')
+    g.add_production('S', 'B')
+    g.add_production('A', 'a')
+    g.add_production('B', 'b')
+    g.set_start_symbol('S')
+    print g.check_input('b')
+    print g._prods_so_far
+    
