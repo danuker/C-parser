@@ -20,6 +20,7 @@ class Grammar:
         self.terms = set()
         
         self.start = None
+        self._best_prods = None
     
     def add_nonterminal(self, nonterm):
         assert(nonterm not in self.prods and nonterm not in self.terms)
@@ -56,37 +57,51 @@ class Grammar:
             
             for prod in sorted(self.prods[nonterm], key=lambda x: -len(x)):
                 # Try a prod!
-                print 'Trying', prod
                 self._prods_so_far.append(str(nonterm)+'->'+str(prod))
-            
-                for x in prod:
+                print 'Trying', self._prods_so_far
+                
+                lasti = 0
+                for i, x in enumerate(prod):
+                    lasti = i
                     # Check every token (x) of the prod
-                    print 'check',x
                     if x in self.prods:
+                        print x, 'is a nonterm'
                         if not self._check_input_aux(x): 
                         # This had side effects!!!
                         # We undo them.
-                            self._input_stack = input_backup
-                            self._prods_so_far = prods_backup
+                            print x,'failed.'
+                            print self._prods_so_far, self._input_stack
+                            self._input_stack = deque(input_backup)
+                            self._prods_so_far = deque(prods_backup)
                             break
-                    
+                        
                     elif x in self.terms:
-                        if len(self._input_stack) > 0 and x == '':
-                            pass
+                        if x == '':
+                            print 'okaying empty'
+                            
                         elif len(self._input_stack) > 0 and x == self._input_stack[0]:
                             self._input_stack.popleft()
+                        
                         else:
-                            self._input_stack = input_backup
-                            self._prods_so_far = prods_backup
+                            self._input_stack = deque(input_backup)
+                            self._prods_so_far = deque(prods_backup)
                             break
                     else:
                         # Error
-                        self._input_stack = input_backup
-                        self._prods_so_far = prods_backup
+                        print 'Error'
+                        self._input_stack = deque(input_backup)
+                        self._prods_so_far = deque(prods_backup)
                         break
-            return False
+            if (lasti == (len(prod)-1)) and len(self._input_stack)==0:
+                if self._best_prods == None:
+                    print 'best prods:', self._prods_so_far
+                    self._best_prods = deque(self._prods_so_far)
+                return True
+            else:
+                return False
         else:
             # We got to length 0, and no return False. We finished!
+            
             return True
             
         
@@ -107,13 +122,6 @@ class Grammar:
         # Make sure there exists a start element
         assert(self.start)
         
-        # Initialize the state
-        state = 'q'         # q - normal
-                            # b - going back
-                            # t - terminated (success)
-                            # e - error (failure)
-        
-        i = 0                       # The position in the input
         self._prods_so_far = deque([])                      # working stack, starts empty
         self._input_stack = deque(input_sequence) # input stack, starts with input    
         
@@ -132,6 +140,9 @@ if __name__ == '__main__':
     http://jflap.org/tutorial/grammar/LL/index.html
     
     '''
+
+    
+    '''
     g.add_terminal('a')
     g.add_terminal('b')
     g.add_terminal('')
@@ -140,9 +151,32 @@ if __name__ == '__main__':
     g.add_nonterminal('S')
     g.add_production('S', 'A')
     g.add_production('S', 'B')
-    g.add_production('A', 'a')
-    g.add_production('B', 'b')
+    g.add_production('A', ('a','A'))
+    g.add_production('A', ('',))
+    g.add_production('B', 'bS')
     g.set_start_symbol('S')
-    print g.check_input('b')
+    g.check_input('aaa')
+    print g._best_prods
+    '''
+    '''
+    Should show:
+    S->A, A->aA, A->aA, A->aA, A->''  - WORKS!
+    '''
+
+
+    g.add_terminal('a')
+    g.add_terminal('b')
+    g.add_terminal('c')
+    g.add_nonterminal('S')
+    g.add_production('S', 'aSbS')
+    g.add_production('S', 'aS')
+    g.add_production('S', 'c')
+    g.set_start_symbol('S')
+    print g.check_input('aacbc')
     print g._prods_so_far
+  
+    '''
+    Should show:
+    S->aSbS, S->aS, S->c, S->c
     
+    '''
