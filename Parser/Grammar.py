@@ -57,80 +57,87 @@ class Grammar:
         state = 'q'
         self.alpha = []
         self.beta = [self.start]
-        
-        
+        self.maxalpha = []
+        self.besti = 0
         while state in ['q', 'b']:
-            if(state == 'q'):
-                
-                if (len(self.beta) == 1 and self.beta[0] == '' or len(self.beta) == 0):
-                    return 't', index , self.alpha
-                # expand
-                
-                elif(self.beta[0] in self.prods):
-                    self.alpha.append((self.beta[0], 0))
-                    prod = self.prods[self.beta[0]][0]
-                    self.beta.pop(0)
-                    self.beta = [x for x in prod] + self.beta
-                
-               
-                elif(len(input) == index):
-                    state = 'b'  
-                # advance  
-                elif(self.beta[0] in self.terms and input[index] == self.beta[0]):
+            if len(self.alpha) > len(self.maxalpha):
+                self.maxalpha = [x for x in self.alpha]
+                self.besti = index
+            try:
+                if(state == 'q'):
                     
-                    index += 1
-                    self.alpha.append(self.beta[0])
-                    self.beta.pop(0)
-                
-                # insuccess
-                elif (len(self.alpha) > 0 and self.alpha[-1] != input[index]):
+                    if (len(self.beta) == 1 and self.beta[0] == '' or len(self.beta) == 0):
+                        return 't', index , self.alpha
+                    # expand
                     
-                    state = 'b'
-                else:
-                    print "you dun goofed"
-                
-                
-                
-            elif(state == 'b'):
-                # back
-                try:
-                    self.alpha[-1]
-                except Exception as e:
-                    print self.alpha 
-                if(len(self.alpha) > 0 and self.alpha[-1] in self.terms):
-                    index -= 1
-                    self.beta.insert(0, self.alpha[-1])
-                    self.alpha.pop()
-                # another try
-                elif len(self.alpha) > 0 and isinstance(self.alpha[-1], tuple):
-                    NT, j = self.alpha.pop()
-                    
-                    prod = self.prods[NT][j]
-                    for _ in prod:
-                        assert(_ == self.beta[0])
+                    elif(self.beta[0] in self.prods):
+                        self.alpha.append((self.beta[0], 0))
+                        prod = self.prods[self.beta[0]][0]
                         self.beta.pop(0)
-                    if index >= 0 and self.beta[0] != self.start:
-                        # branch 1
-                        # clean up the production from beta
-                        if j < len(self.prods[NT]) - 1:
-                            j += 1
-                            self.alpha.append((NT, j))
-                            self.beta = [x for x in self.prods[NT][j]] + self.beta
-                            state = 'q'
-                            
-                        # branch 2
-                        # retreaaat                            
-                        elif j >= len(self.prods[NT]) - 1:
-                            
-                            self.beta.insert(0, NT)
+                        self.beta = [x for x in prod] + self.beta
+                    
+                   
+                    elif(len(input) == index):
+                        state = 'b'  
+                    # advance  
+                    elif(self.beta[0] in self.terms and input[index] == self.beta[0]):
+                        
+                        index += 1
+                        self.alpha.append(self.beta[0])
+                        self.beta.pop(0)
+                    
+                    # insuccess
+                    elif (len(self.alpha) > 0 and self.alpha[-1] != input[index]):
+                        
+                        state = 'b'
                     else:
-                        # branch 3
-                        # error
-                        return 'e', index, self.alpha, self.beta
-            else:
-                print "shit went wrong 2 " + state 
+                        print "you dun goofed"
+                    
+                    
+                    
+                elif(state == 'b'):
+                    # back
+                    if(len(self.alpha) > 0 and self.alpha[-1] in self.terms):
+                        index -= 1
+                        self.beta.insert(0, self.alpha[-1])
+                        self.alpha.pop()
+                    # another try
+                    elif len(self.alpha) > 0 and isinstance(self.alpha[-1], tuple):
+                        NT, j = self.alpha.pop()
+                        
+                        prod = self.prods[NT][j]
+                        for _ in prod:
+                            assert(_ == self.beta[0])
+                            self.beta.pop(0)
+                        if index >= 0 and self.beta[0] != self.start:
+                            # branch 1
+                            # clean up the production from beta
+                            if j < len(self.prods[NT]) - 1:
+                                j += 1
+                                self.alpha.append((NT, j))
+                                self.beta = [x for x in self.prods[NT][j]] + self.beta
+                                state = 'q'
+                                
+                            # branch 2
+                            # retreaaat                            
+                            elif j >= len(self.prods[NT]) - 1:
+                                
+                                self.beta.insert(0, NT)
+                        else:
+                            # branch 3
+                            # error
+                            return 'e', index, self.alpha, self.beta
+                else:
+                    print "shit went wrong 2 " + state
+            
         
-                
+            except IndexError:
+                print 'Error at token '+str(self.besti)+':'
+                with open('PIF') as f:
+                    for i, line in enumerate(f):
+                        if i == self.besti:
+                            print line
+                return 'e', index, self.alpha, self.beta
             
             
             

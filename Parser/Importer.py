@@ -9,7 +9,6 @@ import sys
 
 from Grammar import Grammar
 from Repository.Repository import Repository
-import Run
 
 
 class Importer:
@@ -170,13 +169,14 @@ for token in rep.tokenize():
 
 finalResult = grammar.parse(terminals)
 print "Status:" + finalResult[0]
-print "Productions list:\n"
-for prod in finalResult[2]:
-    if isinstance(prod, tuple):
-        print "{0:20}->{1:100}".format(prod[0], str(grammar.prods[prod[0]][prod[1]]))
-        
-    else:
-        pass
-print "\n\n"
+if finalResult[0] != 'e':
+    print "Productions list:\n"
+    for prod in finalResult[2]:
+        if isinstance(prod, tuple):
+            print "{0:20}->{1:100}".format(prod[0], str(grammar.prods[prod[0]][prod[1]]))
+            
+        else:
+            pass
+    print "\n\n"
 
 
