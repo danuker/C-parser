@@ -1,10 +1,6 @@
-meh           code:41
-size          code:42
-previo        code:43
-a             code:44
-previous      code:45
-x             code:46
-y             code:47
-"abcdde"      code:48
-z             code:49
-'a'           code:50
+main          code:49
+number1       code:50
+number2       code:51
+lcd           code:52
+a             code:53
+printf        code:54

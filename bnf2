@@ -1,5 +1,5 @@
-<Type>::="bool" | "char" | "int" | "real" | "string"
-<Statement>::=<if>|<while>|<println>|<association>|<arraydecl>|<readln>|<simpledecl>|<simplearraydecl>|{<Statement>}
+<Type>::="bool" | "char" | "int" | "real" | "string" | "void"
+<Statement>::=<if>|<while>|<println>|<association>|<arraydecl>|<readln>|<simpledecl>|<simplearraydecl>
 <if>::="if" + "(" <Expression> ")""{" <Statement> "}""else""{" <Statement> "}"
 <while>::="while""(" <Expression> ")""{" <Statement> "}"
 <println>::="println""("<Expression>")"";"
@@ -8,14 +8,15 @@
 <readln>::=<Identifier>"=""readln""("<Expression>")";"
 <simpledecl>::=<Type><Identifier>";"
 <simplearraydecl>::=<Type><Identifier>"["<int>"]"";"
-<Expression>::=<term>"+"<Expression>|<term>
+<Expression>::=<term>"+"<Expression>|<term> | <term> <Relation><Expression>
 <term>::=<factor>"*"<term>|<factor>
-<factor>::="("<Expression>")"|<Identifier>
+<factor>::="("<Identifier>")"|<Identifier>
 <length>::=<Expression>".""length"
+<Identifier>::="VARIABLEID"|"FUNCTIONID"|"NUMBER"|"QUOTE"
 
 <Relation>::="<" | "<=" | "==" | "!=" | ">=" | ">"
 <Operation>::="+" | "-" | "*" | "/" | "%"
 
 <Statements_block>::=<Statement>|<Statement><Statements_block>
-<program>::="void""main""("")""{"<Statements_block>"}"
+<program>::=<Type>"main""("")""{"<Statements_block>"}"
 

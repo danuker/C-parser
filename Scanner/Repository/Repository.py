@@ -23,9 +23,9 @@ class Repository:
     identifierCode = 0
     tokenSpec = [
         # Relation operators
-        ('RELATION', r'[<|<=|==|=>|>]{2}'),
+        ('RELATION', r'[<|<=|==|=>|>|\!=]{1,2}'),
         # Arithmetic operators
-        ('OPERATOR', r'(?<![\+\-\^\*\/%])[\+\-]|[\^\*/%!]'),
+        ('OPERATOR', r'[\+=|\-=]{2}|(?<![\+\-\^\*\/%])[\+\-]|[\^\*/%!]'),
         # Function identifiers
         ('FUNCTIONID', r'[a-zA-Z_][a-zA-Z0-9_]*(?=([ \t]+)?\()'),
         # Variable identifiers
@@ -57,7 +57,7 @@ class Repository:
         '+': 'PLUS', '-': 'MINUS', '*': 'TIMES', '/': 'DIV',
         '^': 'EXP', '%': 'MOD', '!': 'FAC'
     }
-    dataTypes = ['bool', 'char', 'int', 'string', 'real']
+    dataTypes = ['bool', 'char', 'int', 'string', 'real', 'void']
 
     def __init__(self, fileName):
         '''
@@ -91,7 +91,7 @@ class Repository:
                 value = token.group(typ)
                 # ... and handle keywords.
                 if typ == 'OPERATOR' and value in self.keywords.keys():
-                    typ = self.keywords[value]
+                    typ = 'OPERATOR'
                 elif typ == 'VARIABLEID' and value in self.dataTypes:
                     typ = 'DATATYPE'
 #                    dataT = token.group()
@@ -159,7 +159,7 @@ class Repository:
             self.stream += line
             
     def loadTokenCodesFromFile(self):
-        f = open("tokenCodes")
+        f = open("../Scanner/tokenCodes")
         i = 0
         for line in f:
             self.tokensWithCodes[i] = line

@@ -8,6 +8,8 @@ import re
 import sys
 
 from Grammar import Grammar
+from Repository.Repository import Repository
+import Run
 
 
 class Importer:
@@ -64,8 +66,9 @@ class Importer:
         tokenSpec = [
         ('PRODUCTION', r'<.+>(?=::=)'),
         ('NONTERMINAL', r'<[a-z_|A-Z_]+>'),
-        ('TERMINAL', r'(?<=\n\d\n).+|(?<=\n\d\d\n).+|(?<=\")[a-z|A-Z]+(?=\")|(?<=\")[^\"\ \||.]{1,2}(?=\")'),
-        ('SKIP', r'[ \t]')
+        ('TERMINAL', r'(?<=\")[a-z|A-Z]+(?=\")|(?<=\")[^\"\ \||.]{1,2}(?=\")'),
+        ('SKIP', r'[ \t]'),
+        ('OR', r'\|')
         ]
         tokenRegex = '|'.join('(?P<%s>%s)' % pair for pair in tokenSpec)
         
@@ -96,12 +99,25 @@ class Importer:
                             token = nextToken(self.stream, pos)
                             if token is None:
                                 sequence = tuple(sequence)
-                                print "START: " + start + "\nSequence:"
+                                partialseq = []
                                 for elem in sequence:
-                                    sys.stdout.write(elem + ',')
-                                print "\n"
-                                self.gram.add_production(start, sequence)
-                                break
+                                    if elem != '|':
+                                        
+                                        partialseq.append(elem)
+                                    else:
+                                        partialseq = tuple(partialseq)
+                                        print "START: " + start + "\nSequence:"
+                                        for x in partialseq:
+                                            sys.stdout.write(elem + ',')
+                                        print "\n\n"
+                                        self.gram.add_production(start, partialseq)
+                                        partialseq = []
+                                print "START: " + start + "\nSequence:"
+                                for elem in partialseq:
+                                    sys.stdout.write(elem + ',')    
+                                print "\n\n"
+                                self.gram.add_production(start, tuple(partialseq))
+                                return
                             typ = token.lastgroup
                             value = token.group(typ)
                         else:
@@ -109,12 +125,25 @@ class Importer:
                             token = nextToken(self.stream, pos)
                             typ = token.lastgroup
                             value = token.group(typ)
-                    sequence = tuple(sequence)
-                    print "START: " + start + "\nSequence:"
+                    
+                    
+                    partialseq = []
                     for elem in sequence:
-                        sys.stdout.write(elem + ',')
-                    print "\n"
-                    self.gram.add_production(start, sequence)
+                        if elem != '|':
+                            partialseq.append(elem)
+                        else:
+                            partialseq = tuple(partialseq)
+                            print "START: " + start + "\nSequence:"
+                            for x in partialseq:
+                                print x,
+                            print "\n\n"
+                            self.gram.add_production(start, partialseq)
+                            partialseq = []
+                    print "START: " + start + "\nSequence:"
+                    for x in partialseq:
+                        print x,
+                    print "\n\n"
+                    self.gram.add_production(start, tuple(partialseq))
             
             
     def readFromFile(self):
@@ -125,8 +154,29 @@ class Importer:
 grammar = Grammar()
 sc = Importer(grammar)
 for token in sc.parse():
-    print token
-    
-print "\n\n"
+    pass
 sc.readProductions()
+grammar.set_start_symbol('<program>')
+rep = Repository("../sample.cpp")
+
+
+terminals = []
+
+for token in rep.tokenize():
+    if token.code > 49 or token.code == 1:
+        terminals.append(token.type)
+    else:
+        terminals.append(token.value)
+
+finalResult = grammar.parse(terminals)
+print "Status:" + finalResult[0]
+print "Productions list:\n"
+for prod in finalResult[2]:
+    if isinstance(prod, tuple):
+        print "{0:20}->{1:100}".format(prod[0], str(grammar.prods[prod[0]][prod[1]]))
+        
+    else:
+        pass
+print "\n\n"
+
 
